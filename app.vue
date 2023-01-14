@@ -2,7 +2,7 @@
 	<!-- weather-details-card -->
 	<main
 		class="scroll-smooth bg-gradient-to-r from-[#8ecae6] to-[#3b4d68] min-h-screen grid place-items-center">
-		<div v-if="true" class="flex">
+		<div v-if="loading" class="flex">
 			<img
 				class="animate-spin h-8 w-8 mr-3"
 				src="@/assets/images/spinner-svgrepo-com.svg"
