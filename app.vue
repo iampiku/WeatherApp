@@ -2,8 +2,34 @@
 	<!-- weather-details-card -->
 	<main
 		class="scroll-smooth bg-gradient-to-r from-[#8ecae6] to-[#3b4d68] min-h-screen grid place-items-center">
-		<div v-if="loading">
-			<span>Loading</span>
+		<div v-if="true" class="flex">
+			<img
+				class="animate-spin h-8 w-8 mr-3"
+				src="@/assets/images/spinner-svgrepo-com.svg"
+				alt="loadingSpinner" />
+			<span class="mt-1">Loading...</span>
+		</div>
+
+		<!-- Invalid Search pop up -->
+		<div
+			v-if="showAlert"
+			@click="showAlert = false"
+			class="bg-red-100 flex flex-row rounded-lg py-4 px-4 mb-2 text-base text-red-700 absolute top-6 right-12 shadow-2xl"
+			role="alert">
+			<svg
+				aria-hidden="true"
+				focusable="false"
+				data-prefix="fas"
+				data-icon="times-circle"
+				class="w-4 h-4 mr-2 mt-1 fill-current"
+				role="img"
+				xmlns="http://www.w3.org/2000/svg"
+				viewBox="0 0 512 512">
+				<path
+					fill="currentColor"
+					d="M256 8C119 8 8 119 8 256s111 248 248 248 248-111 248-248S393 8 256 8zm121.6 313.1c4.7 4.7 4.7 12.3 0 17L338 377.6c-4.7 4.7-12.3 4.7-17 0L256 312l-65.1 65.6c-4.7 4.7-12.3 4.7-17 0L134.4 338c-4.7-4.7-4.7-12.3 0-17l65.6-65-65.6-65.1c-4.7-4.7-4.7-12.3 0-17l39.6-39.6c4.7-4.7 12.3-4.7 17 0l65 65.7 65.1-65.6c4.7-4.7 12.3-4.7 17 0l39.6 39.6c4.7 4.7 4.7 12.3 0 17L312 256l65.6 65.1z"></path>
+			</svg>
+			Invalid Search!
 		</div>
 		<!-- card -->
 		<section
@@ -20,7 +46,7 @@
 				<picture class="mx-auto">
 					<img
 						class="w-32"
-						src="@/assets/images/icons8-winter-96.png"
+						:src="'/_nuxt/' + weatherIcons(weatherData.weather[0].id)"
 						alt="weather-icon" />
 				</picture>
 				<p class="text-gray-700 text-7xl font-bold">
@@ -106,28 +132,9 @@
 				</div>
 			</div>
 		</section>
-	</main>
 
-	<div
-		v-if="showAlert"
-		@click="showAlert = false"
-		class="bg-red-100 rounded-lg py-5 px-6 mb-3 text-base text-red-700 absolute"
-		role="alert">
-		<svg
-			aria-hidden="true"
-			focusable="false"
-			data-prefix="fas"
-			data-icon="times-circle"
-			class="w-4 h-4 mr-2 fill-current"
-			role="img"
-			xmlns="http://www.w3.org/2000/svg"
-			viewBox="0 0 512 512">
-			<path
-				fill="currentColor"
-				d="M256 8C119 8 8 119 8 256s111 248 248 248 248-111 248-248S393 8 256 8zm121.6 313.1c4.7 4.7 4.7 12.3 0 17L338 377.6c-4.7 4.7-12.3 4.7-17 0L256 312l-65.1 65.6c-4.7 4.7-12.3 4.7-17 0L134.4 338c-4.7-4.7-4.7-12.3 0-17l65.6-65-65.6-65.1c-4.7-4.7-4.7-12.3 0-17l39.6-39.6c4.7-4.7 12.3-4.7 17 0l65 65.7 65.1-65.6c4.7-4.7 12.3-4.7 17 0l39.6 39.6c4.7 4.7 4.7 12.3 0 17L312 256l65.6 65.1z"></path>
-		</svg>
-		Invalid Search!
-	</div>
+		<section v-else></section>
+	</main>
 </template>
 
 <script setup lang="ts">
@@ -145,7 +152,9 @@
 	 * Utils composable
 	 */
 	const { formattedTime, currentFormattedTime, windDirection } = useUtils();
-
+	/**
+	 * To obtain user Geolocation.
+	 */
 	const { coords, error } = useGeolocation({
 		immediate: true,
 		enableHighAccuracy: true,
@@ -161,6 +170,7 @@
 	const currentTime = useState<string>('currentTime', () =>
 		currentFormattedTime()
 	);
+
 	/**
 	 * Fetching weather Data based on user query.
 	 */
@@ -170,8 +180,30 @@
 		weatherData.value = await searchWeatherData(query.value);
 
 		if (weatherData.value === null) {
+			loading.value = true;
 			showAlert.value = true;
+			setTimeout(() => {
+				showAlert.value = false;
+			}, 5000);
+			weatherData.value = await userLocalWeatherData(28.65195, 77.23149);
+			loading.value = false;
 		}
+	};
+
+	const weatherIcons = (weatherCode: number): string => {
+		if (weatherCode >= 200 && weatherCode <= 232)
+			return 'assets/images/icons8-stormy-weather-96.png';
+		else if (weatherCode >= 300 && weatherCode <= 321)
+			return 'assets/images/icons8-windy-weather-96.png'; // img
+		else if (weatherCode >= 500 && weatherCode <= 531)
+			return 'assets/images/icons8-rain-96.png';
+		else if (weatherCode >= 600 && weatherCode <= 622)
+			return 'assets/images/icons8-snow-96.png';
+		else if (weatherCode >= 701 && weatherCode <= 781)
+			return 'assets/images/icons8-fog-96.png';
+		else if (weatherCode >= 801 && weatherCode <= 804)
+			return 'assets/images/icons8-clouds-96.png';
+		else return 'assets/images/icons8-summer-96.png';
 	};
 
 	watch(
@@ -207,6 +239,7 @@
 	);
 
 	onMounted(async () => {
+		loading.value = true;
 		setInterval(() => (currentTime.value = currentFormattedTime()), 60000);
 	});
 </script>
