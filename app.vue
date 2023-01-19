@@ -43,10 +43,10 @@
 				<p class="text-gray-900 text-lg leading-tight font-semibold">
 					{{ weatherData.weather[0].main }}
 				</p>
-				<picture class="mx-auto">
+				<picture>
 					<img
-						class="w-32"
-						:src="'/_nuxt/' + weatherIcons(weatherData.weather[0].id)"
+						class="w-32 mx-auto"
+						:src="`./assets/images/${weatherIcons}.png`"
 						alt="weather-icon" />
 				</picture>
 				<p class="text-gray-700 text-7xl font-bold">
@@ -132,8 +132,6 @@
 				</div>
 			</div>
 		</section>
-
-		<section v-else></section>
 	</main>
 </template>
 
@@ -190,21 +188,22 @@
 		}
 	};
 
-	const weatherIcons = (weatherCode: number): string => {
-		if (weatherCode >= 200 && weatherCode <= 232)
-			return 'assets/images/icons8-stormy-weather-96.png';
-		else if (weatherCode >= 300 && weatherCode <= 321)
-			return 'assets/images/icons8-windy-weather-96.png'; // img
-		else if (weatherCode >= 500 && weatherCode <= 531)
-			return 'assets/images/icons8-rain-96.png';
-		else if (weatherCode >= 600 && weatherCode <= 622)
-			return 'assets/images/icons8-snow-96.png';
-		else if (weatherCode >= 701 && weatherCode <= 781)
-			return 'assets/images/icons8-fog-96.png';
-		else if (weatherCode >= 801 && weatherCode <= 804)
-			return 'assets/images/icons8-clouds-96.png';
-		else return 'assets/images/icons8-summer-96.png';
-	};
+	const weatherIcons = computed(() => {
+		const weatherCode = weatherData.value.weather[0]?.id;
+		const weatherCodes = {
+			'200-232': 'icons8-stormy-weather-96',
+			'300-321': 'icons8-windy-weather-96',
+			'500-531': 'icons8-rain-96',
+			'600-622': 'icons8-snow-96',
+			'701-781': 'icons8-fog-96',
+			'801-804': 'icons8-clouds-96',
+		};
+		for (let [range, icon] of Object.entries(weatherCodes)) {
+			const [start, end] = range.split('-').map(Number);
+			if (weatherCode >= start && weatherCode <= end) return icon;
+		}
+		return 'icons8-summer-96';
+	});
 
 	watch(
 		error,
